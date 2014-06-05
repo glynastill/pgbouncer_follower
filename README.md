@@ -15,7 +15,20 @@ to pgbouncer host if IPv4 addressing has been used for the slony conninfos.
 
 The script can be either run on a schedule or as a daemon with the "D" flag:
 
-# pgbouncer_follower.pl -f <config file> [-D]
+```bash
+$ pgbouncer_follower.pl -f <config file> [-D]
+```
+
+To run as a daemon in debian:
+
+```bash
+$ sudo cp init.debian /etc/init.d/pgbouncer_follower_rw
+$ cp pgbouncer_follower.pl /var/slony/pgbouncer_follower/pgbouncer_follower.pl 
+$ cp pgbouncer_follower_rw.conf /var/slony/pgbouncer_follower/pgbouncer_follower_rw.conf 
+$ sudo chmod +x /etc/init.d/pgbouncer_follower_rw
+$ sudo update-rc.d pgbouncer_follower_rw start 99 2 3 4 5 . stop 24 0 1 6
+$ sudo invoke-rc.d pgbouncer_follower_rw start
+```
 
 ##Configuration options
 
