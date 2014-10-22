@@ -58,12 +58,17 @@ my ($year, $month, $day, $hour, $min, $sec);
 my $change_time;
 my $g_host = hostname;
 my ($g_addr)=inet_ntoa((gethostbyname(hostname))[4]);
+my $g_origins_only = false;
 
 die $g_usage unless GetOptions(\%opt, 'config_file|f=s', 'daemon|D',) and keys %opt and ! @ARGV;
 
 unless (getConfig($opt{config_file})){
     print ("There was a problem reading the configuration.\n");
 }
+if (!defined($g_status_file)) {
+    $g_status_file = "/tmp/$g_clname.status";
+}
+
  
 if ($g_debug) {
     printLogLn($g_logfile, "DEBUG: Logging to my '$g_logfile'");
@@ -235,7 +240,9 @@ sub generateConfig {
                     }
                     if (defined($target_host)) {
                         $_ = "# Configuration for " . ($target_is_origin ? "origin" : "subscriber") . " of sets $target_sets node #$target_node_id $target_host:$target_port\n" . $_;
-                        printLogLn ($g_logfile, "DEBUG: Configuration for " . ($target_is_origin ? "origin" : "subscriber") . " of sets $target_sets node #$target_node_id $target_host:$target_port");
+                        if ($g_debug) {
+                            printLogLn ($g_logfile, "DEBUG: Configuration for " . ($target_is_origin ? "origin" : "subscriber") . " of sets $target_sets node #$target_node_id $target_host:$target_port");
+                        }
                         if ($all_databases) {
                             $_ =~ s/(\[databases\])/$1\n\* = host=$target_host port=$target_port/;
                         }
@@ -270,9 +277,11 @@ sub checkCluster {
     my $current_cluster;
     my $previous_cluster;
     foreach (@g_cluster) {
-        $current_cluster = md5_hex(($current_cluster // "") . $_->[0] . $_->[2] . (defined($_->[3]) ? 't' : 'f'));
-        if ($g_debug) {
-            printLogLn($g_logfile, "DEBUG: Node " . $_->[0] . " detail = " . $_->[2] . (defined($_->[3]) ? 't' : 'f'));
+        if (!$g_origins_only || defined($_->[3])) {
+            $current_cluster = md5_hex(($current_cluster // "") . $_->[0] . $_->[2] . (defined($_->[3]) ? 't' : 'f'));
+            if ($g_debug) {
+                printLogLn($g_logfile, "DEBUG: Node " . $_->[0] . " detail = " . $_->[2] . (defined($_->[3]) ? 't' : 'f'));
+            }
         }
     }
    
@@ -286,15 +295,20 @@ sub checkCluster {
         }
     }
 
-    if (open(CLUSTERFILE, ">", $infile)) {
-        print CLUSTERFILE $current_cluster;
-        close(CLUSTERFILE);
-    }
-    else {
-        printLogLn ($g_logfile, "ERROR: Can't open file $infile for writing");
+    unless (-f $infile && ($current_cluster eq $previous_cluster)) {
+        if ($g_debug) {
+                printLogLn($g_logfile, "DEBUG: Writing to status file");
+        }
+        if (open(CLUSTERFILE, ">", $infile)) {
+            print CLUSTERFILE $current_cluster;
+            close(CLUSTERFILE);
+        }
+        else {
+            printLogLn ($g_logfile, "ERROR: Can't open file $infile for writing");
+        }
     }
 
-    if ((($previous_cluster // "")ne "") && (($current_cluster // "") ne "") && ($current_cluster ne $previous_cluster)){
+    if ((($previous_cluster // "") ne "") && (($current_cluster // "") ne "") && ($current_cluster ne $previous_cluster)){
         $changed = true;
     }
 
@@ -455,6 +469,9 @@ sub getConfig {
                     } 
                     when(/\bpool_all_databases\b/i) {
                         $g_all_databases = checkBoolean($value);
+                    }
+                    when(/\bonly_follow_origins\b/i) {
+                        $g_origins_only = checkBoolean($value);
                     }
                 }  
             }

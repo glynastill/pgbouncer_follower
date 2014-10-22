@@ -43,6 +43,7 @@ $ sudo invoke-rc.d pgbouncer_follower_rw start
 | pgBouncer | sets_to_follow         | text    | *1*                                         | Comma separated list of sets to follow or 'all' to follow all sets
 | pgBouncer | pool_mode              | 'ro/rw' | *'rw'*                                      | Select a read-only subscriber or the origin for read-write
 | pgBouncer | pool_all_databases     | boolean | *'false'*                                   | If true uses wildcard for database name in pgbouncer.ini, false uses slony database
+| pgBouncer | only_follow_origins    | boolean | *'false'*                                   | If true pgbouncer will only be reconfigured and reloaded when sets move origin
 | pgBouncer | status_file            | text    | *'/tmp/pgbouncer_follower_%mode.status'*    | File used to store a hash depicting the state of the cluster
 | pgBouncer | log_file               | text    | *'/tmp/pgbouncer_follower_%mode.log'*       | Log file for the script
 | pgBouncer | pid_file               | text    | *'/tmp/pgbouncer_follower_%mode.log'*       | PID file for the script when run as a daemon
