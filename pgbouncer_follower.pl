@@ -65,10 +65,6 @@ die $g_usage unless GetOptions(\%opt, 'config_file|f=s', 'daemon|D',) and keys %
 unless (getConfig($opt{config_file})){
     print ("There was a problem reading the configuration.\n");
 }
-if (!defined($g_status_file)) {
-    $g_status_file = "/tmp/$g_clname.status";
-}
-
  
 if ($g_debug) {
     printLogLn($g_logfile, "DEBUG: Logging to my '$g_logfile'");
