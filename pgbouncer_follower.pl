@@ -197,8 +197,8 @@ sub generateConfig {
                             else {
                                 undef @sets_origin;
                             }
-                            if (defined($node->[6])) {
-                                @sets_subscribed =  split(',', $node->[6]);
+                            if (defined($node->[5])) {
+                                @sets_subscribed =  split(',', $node->[5]);
                             }
                             else {
                                 undef @sets_subscribed;
@@ -225,7 +225,7 @@ sub generateConfig {
                                 $target_db = $node->[7];
                                 $target_host = $node->[8];
                                 $target_node_id = $node->[0];
-                                $target_sets = ($node->[6] // $node->[3]);
+                                $target_sets = ($node->[5] // $node->[3]);
                                 $target_is_origin = false;
                             }
                             if (defined($node->[9])) {
@@ -274,9 +274,9 @@ sub checkCluster {
     my $previous_cluster;
     foreach (@g_cluster) {
         if (!$g_origins_only || defined($_->[3])) {
-            $current_cluster = md5_hex(($current_cluster // "") . $_->[0] . $_->[2] . (defined($_->[3]) ? 't' : 'f'));
+            $current_cluster = md5_hex(($current_cluster // "") . $_->[0] . $_->[2] . (defined($_->[3]) ? 't' : 'f') . $_->[6]);
             if ($g_debug) {
-                printLogLn($g_logfile, "DEBUG: Node " . $_->[0] . " detail = " . $_->[2] . (defined($_->[3]) ? 't' : 'f'));
+                printLogLn($g_logfile, "DEBUG: Node " . $_->[0] . " detail = " . $_->[2] . (defined($_->[3]) ? 't' : 'f') . $_->[6]);
             }
         }
     }
