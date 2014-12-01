@@ -50,6 +50,7 @@ $ sudo invoke-rc.d pgbouncer_follower_rw start
 | pgBouncer | pool_conf_template     | text    | *'/etc/pgbouncer/pgbouncer_%mode.template'* | Template pgbouncer.ini file with your settings and a blank [databases] section
 | pgBouncer | pool_conf_target       | text    | *'/etc/pgbouncer/pgbouncer_%mode.ini'*      | Target pgbouncer.ini file to write a copy of pool_conf_template with a [databases] section to
 | pgBouncer | pool_reload_command    | text    | *'/etc/init.d/pgbouncer_%mode reload"'*     | System command to execute to reload pgbouncer instance
+| pgBouncer | max_ro_lag             | integer | *0*                                         | Maximum lag in seconds allowed for subscriber nodes when running in ro mode. 0 = don't monitor lag.
 
 The status_file, log_file, pid_file, pool_conf_template, pool_conf_target and 
 pool_reload_command parameters can contain the following special values:
