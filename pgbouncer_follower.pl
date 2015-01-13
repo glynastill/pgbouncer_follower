@@ -288,11 +288,11 @@ sub generateConfig {
 sub checkCluster {
     my $infile = shift;
     my $changed = false;
-    my $current_cluster;
-    my $previous_cluster;
+    my $current_state = md5_hex('INIT');
+    my $previous_state;
     foreach (@g_cluster) {
         if (!$g_origins_only || defined($_->[3])) {
-            $current_cluster = md5_hex(($current_cluster // "") . $_->[0] . $_->[2] . (defined($_->[3]) ? 't' : 'f') . $_->[6] . $_->[11]);
+            $current_state = md5_hex(($current_state // "") . $_->[0] . $_->[2] . (defined($_->[3]) ? 't' : 'f') . $_->[6] . $_->[11]);
             if ($g_debug) {
                 printLogLn($g_logfile, "DEBUG: Node " . $_->[0] . " detail = " . $_->[2] . (defined($_->[3]) ? 't' : 'f') . $_->[6] . $_->[11]);
             }
@@ -301,7 +301,7 @@ sub checkCluster {
    
     if (-f $infile) {
         if (open(CLUSTERFILE, "<", $infile)) {
-            $previous_cluster = <CLUSTERFILE>;
+            $previous_state = <CLUSTERFILE>;
             close(CLUSTERFILE);
         }
         else {
@@ -309,12 +309,12 @@ sub checkCluster {
         }
     }
 
-    unless (-f $infile && ($current_cluster eq $previous_cluster)) {
+    unless (-f $infile && ($current_state eq $previous_state)) {
         if ($g_debug) {
                 printLogLn($g_logfile, "DEBUG: Writing to status file");
         }
         if (open(CLUSTERFILE, ">", $infile)) {
-            print CLUSTERFILE $current_cluster;
+            print CLUSTERFILE $current_state;
             close(CLUSTERFILE);
         }
         else {
@@ -322,7 +322,7 @@ sub checkCluster {
         }
     }
 
-    if ((($previous_cluster // "") ne "") && (($current_cluster // "") ne "") && ($current_cluster ne $previous_cluster)){
+    if ((($previous_state // "") ne "") && ($current_state ne $previous_state)){
         $changed = true;
     }
 
