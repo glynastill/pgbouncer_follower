@@ -22,6 +22,7 @@
 
 use strict;
 use warnings;
+use experimental 'smartmatch';
 use DBI;
 use v5.10.1;
 use Getopt::Long qw/GetOptions/;
