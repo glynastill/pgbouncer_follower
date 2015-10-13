@@ -55,6 +55,7 @@ my $g_conf_target = "/etc/pgbouncer/pgbouncer_%mode.ini";
 my $g_reload_command = "/etc/init.d/pgbouncer_%mode reload";
 my $g_mode = 'rw';
 my $g_all_databases=false;
+my $g_auth_user='';
 my ($year, $month, $day, $hour, $min, $sec);
 my $change_time;
 my $g_host = hostname;
@@ -186,9 +187,14 @@ sub generateConfig {
     my $target_sets;
     my $target_port = 5432;
     my $target_is_origin;
+    my $target_auth = "";
 
     if ($g_debug) {
         printLogLn($g_logfile, "DEBUG: All databases = " . ($g_all_databases ? 'true' : 'false'));
+    }
+
+    if ($g_auth_user ne "") {
+        $target_auth = " auth_user=" . $g_auth_user;
     }
 
     if (open(INFILE, "<", $template)) {
@@ -259,10 +265,10 @@ sub generateConfig {
                             printLogLn ($g_logfile, "DEBUG: Configuration for " . ($target_is_origin ? "origin" : "subscriber") . " of sets $target_sets node #$target_node_id $target_host:$target_port");
                         }
                         if ($all_databases) {
-                            $_ =~ s/(\[databases\])/$1\n\* = host=$target_host port=$target_port/;
+                            $_ =~ s/(\[databases\])/$1\n\* = host=$target_host port=$target_port$target_auth/;
                         }
                         else {
-                            $_ =~ s/(\[databases\])/$1\n$target_db = host=$target_host port=$target_port dbname=$target_db/;
+                            $_ =~ s/(\[databases\])/$1\n$target_db = host=$target_host port=$target_port dbname=$target_db$target_auth/;
                         }
                     }
                     else {
@@ -387,6 +393,7 @@ sub loadCluster {
                     COALESCE((? BETWEEN 1 AND extract(epoch from s.st_lag_time)),false) AS lag_exceeded
                 FROM x 
                 LEFT JOIN $qw_clname.sl_status s ON s.st_received = x.no_id
+		WHERE x.no_conninfo != '<event pending>'
                 )
                 SELECT * FROM z 
                 ORDER BY origin_sets, @(CASE WHEN (host ~ '^[0-9]{1,3}(.[0-9]{1,3}){3}\$') THEN host::inet ELSE '255.255.255.255'::inet END - ?::inet) ASC";
@@ -496,6 +503,9 @@ sub getConfig {
                     } 
                     when(/\bpool_all_databases\b/i) {
                         $g_all_databases = checkBoolean($value);
+                    }
+                    when(/\bauth_user\b/i) {
+                        $g_auth_user = $value;
                     }
                     when(/\bonly_follow_origins\b/i) {
                         $g_origins_only = checkBoolean($value);
