@@ -544,10 +544,18 @@ sub loadBinCluster {
     }
     # Do the post processing we mentioned above, once we know xlog locations differ
     # then we can say the apply lag is correct, else it's just there has been no
-    # activity on the master. 
+    # activity on the master. In the case the xlog locations differ but apply_lag
+    # is 0 then it means no WAL has been applied since srver start; cludge here
+    # and set lag to 1 week.
     else {
         foreach (@tmp_cluster) {
-            $apply_lag = ((@$_[12] > 0 && @$_[11] != $primary_location) ? @$_[12] : 0);
+            if (@$_[11] eq $primary_location) {
+                $apply_lag = 0;
+            }
+            else {
+                $apply_lag = @$_[12] if (@$_[12] > 0);
+                $apply_lag = 604800 if (@$_[12] = 0);
+            }
             my @node=(@$_[0],@$_[1],@$_[2],@$_[3],@$_[4],@$_[5],@$_[6],@$_[7],@$_[8],@$_[9],@$_[10],$apply_lag);
             push(@cluster,  \@node);
         }
